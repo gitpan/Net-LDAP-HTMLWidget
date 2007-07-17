@@ -2,16 +2,17 @@ package Net::LDAP::HTMLWidget;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 # pod after __END__
 
 sub fill_widget {
     my ($self,$entry,$widget)=@_;
 
-    foreach my $element ( @{ $widget->{_elements} } ) {
+    my @elements = $widget->find_elements;
+    foreach my $element ( @elements ) {
         my $name=$element->name;
         next unless $name && $entry->exists($name) && $element->can('value');
-	$element->value( $entry->get_value($name) );
+	    $element->value( $entry->get_value($name) );
     }
 }
 
@@ -19,13 +20,18 @@ sub fill_widget {
 sub populate_from_widget {
     my ($self,$entry,$result,$ldap)=@_;
 
-    $ldap=$self if ref $self && ($self->isa('Net::LDAP') || $self->isa('Catalyst::Model::LDAP'));
-
-    foreach my $oc ( ref $entry->get_value('objectClass') ? @{$entry->get_value('objectClass')} : ($entry->get_value('objectClass'))) {
-	foreach my $attr ($ldap->schema->must($oc),$ldap->schema->may($oc)) {
-	    $entry->replace($attr->{name}, $result->param($attr->{name})) 
-		if defined $result->param($attr->{name});
-	}
+    $ldap = $self if (ref $self && ($self->isa('Net::LDAP') || $self->isa('Catalyst::Model::LDAP::Connection')));
+    $ldap = $self->_ldap_client if (ref($self) and $self->isa('Catalyst::Model::LDAP::Entry') && $self->_ldap_client);
+    
+    croak("No LDAP connection") unless $ldap;
+    
+    foreach my $oc ( ref $entry->get_value('objectClass') 
+        ? @{$entry->get_value('objectClass')} 
+        : ($entry->get_value('objectClass'))) {
+	        foreach my $attr ($ldap->schema->must($oc),$ldap->schema->may($oc)) {
+	            $entry->replace($attr->{name}, $result->param($attr->{name})) 
+		            if defined $result->param($attr->{name});
+	        }
     }
     return $entry->update($ldap);
 }
@@ -102,27 +108,24 @@ docs of those modules.
 =head1 DESCRIPTION
 
 Something like Class::DBI::FromForm / Class::DBI::FromCGI but using
-HTML::Widget for form creation and validation and DBIx::Class as a ORM.
+HTML::Widget for form creation and validation and Net::LDAP.
 
 =head2 Methods
 
-=head3 fill_widget
+=head3 fill_widget $item, $widget
 
-   $dbic_object->fill_widget($widget);
+Fill the values of a widgets elements with the values of the LDAP object.
 
-Fill the values of a widgets elements with the values of the DBIC object.
+=head3 populate_from_widget $item, $results, $ldap_connection
 
-=head3 populate_from_widget
-
-   my $obj=$schema->resultset('pet)->new->populate_from_widget($result);
-   my $item->populate_from_widget($result);
-
-Create or update a DBIx::Class row from a HTML::Widget::Result object
+Updates the $item with new values from $result and updated using 
+$ldap_connection.
    
 =head1 AUTHOR
 
 Thomas Klausner, <domm@cpan.org>, http://domm.zsi.at
 Marcus Ramberg, <mramberg@cpan.org>
+Andreas Marienborg, <andremar@cpan.org>
 
 =head1 LICENSE
 

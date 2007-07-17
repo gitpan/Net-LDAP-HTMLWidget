@@ -1,5 +1,8 @@
-Revision history for DBIx-Class-HTMLWidget
+Revision history for Net-LDAP-HTMLWidget
 
-0.01    2006-10-13 15:06
+0.02    2007-07-17 14:39
+        Tuned in with later releases of HTML::Widget and the new API
+        
+0.01    2006-01-25 15:06
         First version, released on an unsuspecting world.
 
