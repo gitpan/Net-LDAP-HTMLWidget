@@ -2,12 +2,16 @@ package Net::LDAP::HTMLWidget;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 # pod after __END__
+use Carp qw(croak);
 
 sub fill_widget {
     my ($self,$entry,$widget)=@_;
-
+    if (ref($entry) and $entry->isa('HTML::Widget')) {
+        $widget = $entry;
+        $entry = $self;
+    }
     my @elements = $widget->find_elements;
     foreach my $element ( @elements ) {
         my $name=$element->name;
@@ -19,11 +23,16 @@ sub fill_widget {
 
 sub populate_from_widget {
     my ($self,$entry,$result,$ldap)=@_;
+    if (ref($entry) and $entry->isa('HTML::Widget::Result')) {
+        $ldap = $result;
+        $result = $entry;
+        $entry = $self;
+    }
 
     $ldap = $self if (ref $self && ($self->isa('Net::LDAP') || $self->isa('Catalyst::Model::LDAP::Connection')));
     $ldap = $self->_ldap_client if (ref($self) and $self->isa('Catalyst::Model::LDAP::Entry') && $self->_ldap_client);
     
-    croak("No LDAP connection") unless $ldap;
+    croak("No LDAP connection: " . ref($self)) unless $ldap;
     
     foreach my $oc ( ref $entry->get_value('objectClass') 
         ? @{$entry->get_value('objectClass')} 
