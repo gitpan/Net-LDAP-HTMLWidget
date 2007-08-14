@@ -1,5 +1,7 @@
 Revision history for Net-LDAP-HTMLWidget
-
+0.04    2007-08-14 08:01
+        Fixed the distro to not include ._ files
+        
 0.03    2007-08-08 12:39
         Fixed a missing use Carp;
         
