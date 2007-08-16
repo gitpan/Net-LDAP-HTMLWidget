@@ -2,7 +2,7 @@ package Net::LDAP::HTMLWidget;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 # pod after __END__
 use Carp qw(croak);
 
