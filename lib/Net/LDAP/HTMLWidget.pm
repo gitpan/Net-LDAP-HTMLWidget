@@ -2,9 +2,10 @@ package Net::LDAP::HTMLWidget;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 # pod after __END__
 use Carp qw(croak);
+our $DECODE = 0;
 
 sub fill_widget {
     my ($self,$entry,$widget)=@_;
@@ -16,7 +17,11 @@ sub fill_widget {
     foreach my $element ( @elements ) {
         my $name=$element->name;
         next unless $name && $entry->exists($name) && $element->can('value');
-	    $element->value( $entry->get_value($name) );
+        my $v = $entry->get_value($name);
+        if ($DECODE) {
+            $v = Encode::decode($DECODE, $v);
+        }
+	    $element->value( $v );
     }
 }
 
@@ -129,7 +134,26 @@ Fill the values of a widgets elements with the values of the LDAP object.
 
 Updates the $item with new values from $result and updated using 
 $ldap_connection.
-   
+
+
+=head1 CHARACTER ENCODING
+
+As a result of utf-8 handling in general beeing a pain in the ass,
+we also provide an bad hack to work around certain odities. 
+
+We have a package scoped variabel called DECODE which, if set, will
+cause values from the ldap-server to be decoded from that encoding
+to perls internal string format before it gets added to the HTML::Widget
+
+=head2 Example
+    
+    package MyApp::LDAP::Entry;
+    use base qw/Net::LDAP::HTMLWidget/;
+    
+    $Net::LDAP::HTMLWidget::DECODE = 'utf-8';
+    
+    1;
+
 =head1 AUTHOR
 
 Thomas Klausner, <domm@cpan.org>, http://domm.zsi.at
