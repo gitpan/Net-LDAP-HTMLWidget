@@ -1,4 +1,7 @@
 Revision history for Net-LDAP-HTMLWidget
+0.07    2008-01-01 07:39
+        Removing ._ files :p
+        
 0.06    2008-01-01 07:29
         Making it possible to decode values from the ldap server before
         filling the widget.
